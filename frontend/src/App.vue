@@ -37,12 +37,39 @@
         </div>
         <div v-else class="flex flex-col items-center gap-3">
           <div class="text-7xl font-bold text-purple-400">{{ store.quizChar }}</div>
-          <div class="text-sm text-gray-400">点击下方 6 点阵选择对应盲文</div>
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+              <input type="checkbox" v-model="store.orderMode" class="w-4 h-4 accent-purple-500" />
+              顺序模式（按 1→6 顺序选择）
+            </label>
+          </div>
+          <div class="h-6 text-sm font-medium transition-all"
+            :class="{
+              'text-green-400': store.feedbackMsg && store.feedbackMsg.startsWith('已选择'),
+              'text-yellow-400': store.feedbackMsg && store.feedbackMsg.startsWith('已取消'),
+              'text-red-400': store.feedbackMsg && store.feedbackMsg.startsWith('顺序错误'),
+              'text-transparent': !store.feedbackMsg
+            }">
+            {{ store.feedbackMsg || '点击下方 6 点阵选择对应盲文' }}
+          </div>
           <div class="grid grid-cols-2 gap-2 p-4 bg-gray-800 rounded-xl">
             <button v-for="d in 6" :key="d" @click="store.toggleDot(d)"
-              class="w-14 h-14 rounded-full border-2 transition-all"
-              :class="store.selectedDots.includes(d) ? 'bg-purple-500 border-purple-400 scale-110' : 'bg-gray-700 border-gray-600 hover:border-purple-400'">
+              class="w-14 h-14 rounded-full border-2 transition-all relative"
+              :class="[
+                store.selectedDots.includes(d)
+                  ? (store.shakeDot === d && store.feedbackMsg.startsWith('已取消')
+                      ? 'bg-gray-600 border-gray-500'
+                      : 'bg-purple-500 border-purple-400 scale-110')
+                  : (store.shakeDot === d
+                      ? (store.orderMode ? 'bg-red-900/50 border-red-500' : 'bg-gray-700 border-gray-600')
+                      : 'bg-gray-700 border-gray-600 hover:border-purple-400'),
+                store.shakeDot === d ? 'animate-shake' : ''
+              ]">
               <span class="text-xs">{{ d }}</span>
+              <span v-if="store.selectedDots.includes(d) && store.selectionOrder.includes(d)"
+                class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-yellow-400 text-gray-900 text-xs font-bold flex items-center justify-center">
+                {{ store.selectionOrder.indexOf(d) + 1 }}
+              </span>
             </button>
           </div>
           <button @click="store.checkQuizAnswer()" class="bg-purple-500 px-6 py-2 rounded hover:bg-purple-400">确认</button>
